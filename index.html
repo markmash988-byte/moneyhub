@@ -201,7 +201,7 @@
         
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -376,7 +376,7 @@
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const userRef = doc(db, "users", userCredential.user.uid);
-                await updateDoc(userRef, { name: name });
+                await setDoc(userRef, { name: name });
             } catch (error) {
                 showAlert(error.message);
             } finally {
@@ -428,7 +428,7 @@
                     const date = msg.createdAt ? msg.createdAt.toDate().toLocaleDateString() : 'N/A';
                     listEl.innerHTML += `<div class="card-bg p-4 rounded-lg"><div class="flex justify-between items-center mb-1"><h3 class="font-bold">${msg.title}</h3><p class="text-xs text-gray-400">${date}</p></div><p class="text-sm text-gray-300">${msg.message}</p></div>`;
                 });
-                await updateDoc(doc(db, "users", currentUser.uid), { lastNotificationCheck: serverTimestamp() });
+                await setDoc(doc(db, "users", currentUser.uid), { lastNotificationCheck: serverTimestamp() });
             } catch (error) {
                 console.error("Error loading notifications:", error);
                 listEl.innerHTML = '<p class="text-red-400">Error loading notifications.</p>';
@@ -482,9 +482,9 @@
                     const referrerDoc = querySnapshot.docs[0];
                     const referrerRef = doc(db, "users", referrerDoc.id);
                     const referrerData = referrerDoc.data();
-                    await updateDoc(referrerRef, { balance: (referrerData.balance || 0) + 250 });
+                    await setDoc(referrerRef, { balance: (referrerData.balance || 0) + 250 });
                     const newUserRef = doc(db, "users", currentUser.uid);
-                    await updateDoc(newUserRef, { balance: (userData.balance || 0) + 150, referredBy: referrerCode });
+                    await setDoc(newUserRef, { balance: (userData.balance || 0) + 150, referredBy: referrerCode });
                     userData.balance += 150; userData.referredBy = referrerCode;
                     updateUI();
                     if(isManualApply) showAlert("Code applied successfully! You have received 150 coins.");
@@ -501,7 +501,7 @@
             if (!currentUser) return;
             const newBalance = (userData.balance || 0) + amount;
             const userRef = doc(db, "users", currentUser.uid);
-            await updateDoc(userRef, { balance: newBalance });
+            await setDoc(userRef, { balance: newBalance });
             userData.balance = newBalance;
             updateUI();
         }
@@ -562,7 +562,7 @@
             const userRef = doc(db, "users", currentUser.uid);
 
             if (userData.lastAdWatchDate !== today) {
-                await updateDoc(userRef, { dailyAdCount: 0, lastAdWatchDate: today });
+                await setDoc(userRef, { dailyAdCount: 0, lastAdWatchDate: today });
                 userData.dailyAdCount = 0;
                 userData.lastAdWatchDate = today;
             }
@@ -589,7 +589,7 @@
                 await adPromise;
 
                 const newCount = (userData.dailyAdCount || 0) + 1;
-                await updateDoc(userRef, { dailyAdCount: newCount });
+                await setDoc(userRef, { dailyAdCount: newCount });
                 userData.dailyAdCount = newCount;
                 
                 let rewardAmount = 0;
